@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
 import requests
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/process', methods=['POST'])
 def process_request():
@@ -13,7 +15,7 @@ def process_request():
         "description": data.get("description", "")
     }
     # Sử dụng endpoint /execute được public từ Colab (cập nhật URL phù hợp)
-    colab_url = "https://358c-34-145-39-96.ngrok-free.app/execute"
+    colab_url = "https://e379-34-90-161-180.ngrok-free.app/execute"
     try:
         response = requests.post(colab_url, json=payload)
         response.raise_for_status()  # Kiểm tra lỗi HTTP
