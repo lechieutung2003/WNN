@@ -1,0 +1,60 @@
+@keyframes animate {
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(360deg);
+  }
+}
+
+.wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  text-align: center;
+  // display: flex;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Áp dụng animation xoay cho container inner */
+.inner {
+  --w: 100px;
+  --h: 150px;
+  --translateZ: calc((var(--w) + var(--h)) + 0px);
+  --perspective: 1000px;
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  top: 25%;
+  left: calc(50% - (var(--w) / 2) - 2.5px);
+  z-index: 2;
+  transform-style: preserve-3d;
+  animation: animate 20s linear infinite;
+}
+
+/* Kiểu dáng cho từng card với hiệu ứng đặt theo chiều sâu */
+.card {
+  position: absolute;
+  border: 2px solid rgba(var(--color-card));
+  border-radius: 12px;
+  overflow: hidden;
+  inset: 0;
+  transform: rotateY(calc((360deg / var(--quantity)) * var(--index))) translateZ(var(--translateZ));
+}
+
+/* Định dạng hình ảnh bên trong card */
+.img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: radial-gradient(
+    circle,
+    rgba(var(--color-card), 0.2) 0%,
+    rgba(var(--color-card), 0.6) 80%,
+    rgba(var(--color-card), 0.9) 100%
+  );
+}
