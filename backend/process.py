@@ -1,11 +1,14 @@
-from flask import Flask, request, jsonify, send_from_directory
-import requests
-import sys
-import json
-from flask_cors import CORS
-import traceback
-import base64
 import os
+import json
+import time
+import base64
+import tempfile
+import traceback
+from datetime import datetime
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import sys
+import requests
 
 # Add the parent directory to sys.path to import app modules
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -112,248 +115,112 @@ def process_request():
         print(f"Error processing request: {str(e)}")
         return jsonify({"success": False, "error": str(e)})
 
-@app.route('/save-image', methods=['POST'])
-def save_image():
-    try:
-        data = request.json
-        base64_image = data.get('base64Image')
-        filename = data.get('filename')
-        title = data.get('title')
-        
-        if not base64_image or not filename or not title:
-            return jsonify({"message": "Missing image, filename, or title"}), 400
-            
-        # Loại bỏ header base64
-        base64_data = base64_image.replace('data:image/jpeg;base64,', '')
-        base64_data = base64_data.replace('data:image/png;base64,', '')
-        
-        # Chuyển base64 thành binary
-        image_data = base64.b64decode(base64_data)
-        
-        # Đường dẫn để lưu file
-        image_path = f"generated/{filename}"
-        file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "public", image_path)
-        
-        # Đảm bảo thư mục tồn tại
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        
-        # Lưu file ảnh
-        with open(file_path, 'wb') as f:
-            f.write(image_data)
-            
-        # Cập nhật gallery.json
-        gallery = []
-        try:
-            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
-                gallery = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            print(f"Gallery file error: {str(e)}")
-            gallery = []
-            
-        # Thêm mục mới vào gallery
-        gallery.append({"title": title, "imageUrl": image_path})
-        
-        # Đảm bảo thư mục data tồn tại
-        os.makedirs(os.path.dirname(GALLERY_PATH), exist_ok=True)
-        
-        # Lưu gallery.json
-        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
-            json.dump(gallery, f, indent=2)
-            
-        print(f"Image saved successfully: {file_path}")
-        return jsonify({"imageUrl": image_path})
-    except Exception as e:
-        import traceback
-        print(f"Error saving image: {str(e)}")
-        print(traceback.format_exc())
-        return jsonify({"message": f"Error saving image: {str(e)}"}), 500
-
-@app.route('/update-status', methods=['POST'])
-def update_status():
+@app.route('/mint-nft-direct', methods=['POST'])
+def mint_nft_direct():
+    """
+    Mint NFT trực tiếp từ ảnh được tạo - Thay thế chức năng Add to Gallery
+    - Upload ảnh lên IPFS
+    - Tạo metadata NFT
+    - Trả về thông tin để frontend mint trên blockchain
+    """
     try:
         data = request.json
         title = data.get('title')
+        image_data = data.get('imageData')  # Base64 image data
+        address = data.get('address')
+        description = data.get('description', '')
         
-        if not title:
-            return jsonify({"message": "Missing title"}), 400
-            
-        # Đọc gallery.json
-        try:
-            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
-                gallery = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return jsonify({"message": "Gallery not found or invalid format"}), 500
-            
-        # Tìm và cập nhật trạng thái
-        index = next((i for i, item in enumerate(gallery) if item.get('title') == title), -1)
-        
-        if index == -1:
-            return jsonify({"message": "Title not found in gallery"}), 404
-            
-        gallery[index]['status'] = 'added'
-        
-        # Lưu gallery.json
-        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
-            json.dump(gallery, f, indent=2)
-            
-        return jsonify({"message": "Status updated successfully"})
-    except Exception as e:
-        print(f"Error updating status: {str(e)}")
-        return jsonify({"message": f"Error updating status: {str(e)}"}), 500
-
-@app.route('/cancel-addition', methods=['POST'])
-def cancel_addition():
-    try:
-        data = request.json
-        title = data.get('title')
-        
-        if not title:
-            return jsonify({"message": "Missing title"}), 400
-            
-        # Đọc gallery.json
-        try:
-            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
-                gallery = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return jsonify({"message": "Gallery not found or invalid format"}), 500
-            
-        # Tìm và xóa item khỏi gallery với status 'added'
-        updated_gallery = []
-        removed = False
-        
-        for item in gallery:
-            if item.get('title') == title and item.get('status') == 'added':
-                # Loại bỏ status để đánh dấu là không còn trong gallery
-                if 'status' in item:
-                    del item['status']
-                removed = True
-            updated_gallery.append(item)
-        
-        # Nếu không có thay đổi, trả về lỗi
-        if not removed:
-            return jsonify({"message": "Title not found in gallery or not marked as added"}), 404
-            
-        # Lưu gallery.json
-        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
-            json.dump(updated_gallery, f, indent=2)
-            
-        return jsonify({"message": "Item removed from gallery successfully"})
-        
-    except Exception as e:
-        return jsonify({"message": f"Error: {str(e)}"}), 500
-    
-@app.route('/api/images', methods=['GET'])
-def get_gallery_images():
-    try:
-        # Đọc gallery.json
-        with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
-            gallery = json.load(f)
-            
-        # Lọc ra các mục có status là 'added'
-        images = [item for item in gallery if item.get('status') == 'added']
-        
-        return jsonify(images)
-    except Exception as e:
-        print(f"Error reading gallery: {str(e)}")
-        return jsonify({"message": f"Error reading gallery: {str(e)}"}), 500
-
-@app.route('/generated/<path:filename>')
-def serve_image(filename):
-    """Phục vụ file ảnh từ thư mục generated"""
-    return send_from_directory(GENERATED_DIR, filename)
-
-@app.route('/check', methods=['GET'])
-def check_server():
-    """Endpoint đơn giản để kiểm tra server có hoạt động không"""
-    return jsonify({"status": "ok", "message": "Unified server is running"})
-
-@app.route('/mint-nft', methods=['POST'])
-def mint_nft():
-    """Mint NFT từ hình ảnh trong gallery"""
-    try:
-        data = request.json
-        title = data.get('title')
-        address = data.get('address')  # Nhận địa chỉ ví từ request
-        
-        if not title:
-            return jsonify({"success": False, "message": "Thiếu tiêu đề"}), 400
-            
-        # Tải gallery để tìm tác phẩm
-        try:
-            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
-                gallery = json.load(f)
-        except Exception as e:
-            return jsonify({"success": False, "error": f"Không thể tải gallery: {str(e)}"}), 500
-            
-        # Tìm tác phẩm trong gallery
-        artwork = next((item for item in gallery if item.get('title') == title), None)
-            
-        if not artwork:
-            return jsonify({"success": False, "message": "Không tìm thấy tác phẩm"}), 404
-        
-        # Kiểm tra xem đã mint trước đó chưa
-        if artwork.get('nft'):
+        if not title or not image_data or not address:
             return jsonify({
-                "success": True, 
-                "message": "NFT đã được tạo trước đó", 
-                "data": artwork['nft']
-            }), 200
+                "success": False, 
+                "message": "Thiếu thông tin: title, imageData, hoặc address"
+            }), 400
         
-        # Lấy đường dẫn đầy đủ đến hình ảnh
-        image_url = artwork.get('imageUrl', '')
-        if not image_url:
-            return jsonify({"success": False, "message": "Không tìm thấy URL hình ảnh"}), 400
+        print(f"Starting direct NFT mint for: {title}")
         
-        print(image_url)
-        
-        image_path = r"F:\WNN\WNN\DApp\frontend\public" + image_url
-        
-        print(f"Image path: {image_path}")
-        
-        if not os.path.exists(image_path):
-            return jsonify({"success": False, "message": f"Không tìm thấy file hình ảnh tại {image_path}"}), 404
-                
-        # Tải lên IPFS qua Pinata
-        metadata = {
-            "title": artwork.get('title', 'Untitled'),
-            "creator": artwork.get('creator', 'Unknown'),
-            "dateCreated": artwork.get('dateCreated', ''),
-            "materials": artwork.get('materials', ''),
-            "description": artwork.get('description', '')
-        }
-        
-        result = storage_client.upload_artwork(image_path, metadata)
-        
-        if not result.get('success'):
-            error_msg = result.get('error', 'Unknown error')
-            print(f"Error uploading to IPFS: {error_msg}")
-            return jsonify({"success": False, "error": error_msg}), 500
+        # 1. Tạo file ảnh tạm thời từ base64
+        try:
+            # Loại bỏ phần header "data:image/...;base64,"
+            if ',' in image_data:
+                image_data = image_data.split(',')[1]
             
-        # Cập nhật gallery với metadata NFT và địa chỉ chủ sở hữu
-        for i, item in enumerate(gallery):
-            if item.get('title') == artwork.get('title'):
-                gallery[i]['nft'] = {
-                    'metadata_url': result.get('metadata_url'),
-                    'gateway_url': result.get('gateway_url'),
-                    'image_cid': result.get('image_cid'),
-                    'metadata_cid': result.get('metadata_cid'),
-                    'owner_address': address.lower() if address else None
-                }
-                break
-        
-        # Lưu gallery đã cập nhật
-        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
-            json.dump(gallery, f, indent=2)
+            image_bytes = base64.b64decode(image_data)
             
+            # Tạo tên file unique
+            timestamp = int(time.time())
+            filename = f"{title.replace(' ', '_').replace('/', '_')}_{timestamp}.jpg"
+            
+            # Tạo file tạm
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg")
+            temp_file.write(image_bytes)
+            temp_file.close()
+            temp_path = temp_file.name
+            
+            print(f"Created temporary image file: {temp_path}")
+            
+        except Exception as e:
+            return jsonify({
+                "success": False, 
+                "error": f"Lỗi xử lý ảnh: {str(e)}"
+            }), 400
+        
+        # 2. Upload lên IPFS
+        try:
+            metadata = {
+                "title": title,
+                "creator": "AI Generated",
+                "dateCreated": datetime.now().isoformat(),
+                "description": description or f"AI-generated artwork: {title}",
+                "materials": "Digital Art",
+                "type": "NFT",
+                "chain": "Ethereum"
+            }
+            
+            print(f"Uploading to IPFS with metadata: {metadata}")
+            result = storage_client.upload_artwork(temp_path, metadata)
+            
+            # Xóa file tạm
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            
+            if not result.get('success'):
+                return jsonify({
+                    "success": False, 
+                    "error": f"Lỗi upload IPFS: {result.get('error', 'Unknown error')}"
+                }), 500
+            
+            print(f"IPFS upload successful: {result}")
+            
+        except Exception as e:
+            # Cleanup file tạm nếu có lỗi
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            
+            return jsonify({
+                "success": False, 
+                "error": f"Lỗi upload IPFS: {str(e)}"
+            }), 500
+        
+        # 3. Trả về thông tin để frontend mint NFT
         return jsonify({
             "success": True,
-            "message": "Metadata NFT đã được tạo thành công",
-            "data": result,
-            "address": address  # Trả về địa chỉ để frontend xử lý
+            "message": "Upload IPFS thành công, sẵn sàng mint NFT",
+            "data": {
+                "metadata_url": result.get('metadata_url'),
+                "gateway_url": result.get('gateway_url'),
+                "image_cid": result.get('image_cid'),
+                "metadata_cid": result.get('metadata_cid'),
+                "title": title,
+                "address": address
+            }
         })
         
     except Exception as e:
-        print(f"Error in /mint-nft endpoint: {str(e)}")
+        print(f"Error in mint_nft_direct: {str(e)}")
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -362,7 +229,6 @@ def test_pinata():
     """Kiểm tra kết nối với Pinata"""
     try:
         # Tạo file test
-        import tempfile
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp:
             temp.write(b"This is a test file for Pinata")
             test_file = temp.name
@@ -377,7 +243,6 @@ def test_pinata():
         })
         
         # Xóa file test
-        import os
         os.unlink(test_file)
         
         return jsonify({
@@ -386,16 +251,65 @@ def test_pinata():
             "result": result
         })
     except Exception as e:
-        import traceback
         return jsonify({
             "success": False,
             "error": str(e),
             "traceback": traceback.format_exc()
         }), 500
 
-if __name__ == '__main__':
-    print("Starting unified Flask server on port 5000...")
+@app.route('/check', methods=['GET'])
+def check_server():
+    """Endpoint để kiểm tra server hoạt động"""
+    return jsonify({
+        "status": "ok", 
+        "message": "Web3 NFT Minting Server is running",
+        "endpoints": {
+            "/process": "Generate AI images",
+            "/mint-nft-direct": "Upload to IPFS and prepare NFT metadata",
+            "/test-pinata": "Test IPFS connection",
+            "/check": "Health check"
+        }
+    })
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
     try:
-        app.run(debug=True, port=5000)
+        # Kiểm tra kết nối Pinata
+        pinata_status = "unknown"
+        try:
+            # Test đơn giản không upload file
+            pinata_status = "connected" if PINATA_JWT else "no_jwt"
+        except:
+            pinata_status = "error"
+        
+        return jsonify({
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "services": {
+                "stable_diffusion_api": STABLE_DIFFUSION_API,
+                "pinata_ipfs": pinata_status,
+                "server": "running"
+            }
+        })
     except Exception as e:
-        print(f"Error starting server: {str(e)}")
+        return jsonify({
+            "status": "unhealthy",
+            "error": str(e)
+        }), 500
+
+if __name__ == '__main__':
+    print("🚀 Starting Web3 NFT Minting Server on port 5000...")
+    print(f"📡 Stable Diffusion API: {STABLE_DIFFUSION_API}")
+    print(f"🔗 IPFS Storage: Pinata")
+    print("📋 Available endpoints:")
+    print("   - POST /process: Generate AI images")
+    print("   - POST /mint-nft-direct: Upload to IPFS and prepare NFT")
+    print("   - GET /test-pinata: Test IPFS connection")
+    print("   - GET /check: Health check")
+    print("   - GET /health: Detailed health status")
+    
+    try:
+        app.run(debug=True, port=5000, host='0.0.0.0')
+    except Exception as e:
+        print(f"❌ Error starting server: {str(e)}")

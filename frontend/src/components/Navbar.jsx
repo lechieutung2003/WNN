@@ -33,6 +33,14 @@ const Navbar = () => {
             </li>
             <li>
               <a
+                href="/marketplace"
+                className={currentPath === '/marketplace' ? 'active' : ''}
+              >
+                MARKETPLACE
+              </a>
+            </li>
+            <li>
+              <a
                 href="#about"
                 className={currentPath === '#about' ? 'active' : ''}
               >

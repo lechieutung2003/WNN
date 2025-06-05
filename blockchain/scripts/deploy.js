@@ -1,32 +1,39 @@
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
-  // Lấy contract factory
-  const ArtMuseumNFT = await hre.ethers.getContractFactory("ArtMuseumNFT");
-  
-  // Triển khai smart contract
+  console.log("Deploying contracts...");
+
+  // Deploy ArtMuseumNFT
+  const ArtMuseumNFT = await ethers.getContractFactory("ArtMuseumNFT");
   const artMuseumNFT = await ArtMuseumNFT.deploy();
-  
-  // Đợi cho đến khi transaction được xác nhận (thay vì dùng deployed())
   await artMuseumNFT.waitForDeployment();
-  
-  // Lấy địa chỉ contract đã triển khai
-  const contractAddress = await artMuseumNFT.getAddress();
-  
-  console.log("ArtMuseumNFT đã được triển khai tới địa chỉ:", contractAddress);
-  
-  // Lưu địa chỉ contract để sử dụng sau này
-  const fs = require("fs");
-  const contractsDir = __dirname + "/../contractAddress";
-  
-  if (!fs.existsSync(contractsDir)) {
-    fs.mkdirSync(contractsDir);
-  }
-  
+
+  const nftAddress = await artMuseumNFT.getAddress();
+  console.log("ArtMuseumNFT deployed to:", nftAddress);
+
+  // Deploy Marketplace
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const marketplace = await Marketplace.deploy();
+  await marketplace.waitForDeployment();
+
+  const marketplaceAddress = await marketplace.getAddress();
+  console.log("Marketplace deployed to:", marketplaceAddress);
+
+  // Lưu địa chỉ contracts
+  const fs = require('fs');
+  const contractAddresses = {
+    ArtMuseumNFT: nftAddress,
+    Marketplace: marketplaceAddress,
+    network: "localhost", // Ganache
+    deployedAt: new Date().toISOString()
+  };
+
   fs.writeFileSync(
-    contractsDir + "/address.json",
-    JSON.stringify({ ArtMuseumNFT: contractAddress }, null, 2)
+    './contractAddress/addresses.json',
+    JSON.stringify(contractAddresses, null, 2)
   );
+
+  console.log("Contract addresses saved to contractAddress/addresses.json");
 }
 
 main()

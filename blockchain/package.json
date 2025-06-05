@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "npx hardhat compile",
+    "deploy": "npx hardhat run scripts/deploy.js --network ganache",
+    "test": "npx hardhat test",
+    "clean": "npx hardhat clean"
   },
   "keywords": [],
   "author": "",
@@ -17,4 +20,5 @@
     "@openzeppelin/contracts": "^5.3.0",
     "dotenv": "^16.5.0"
   }
+  
 }

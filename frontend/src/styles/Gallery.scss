@@ -10,7 +10,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
-    padding-top: 120px; // Để tránh navbar
+    padding-top: 120px;
     
     .gallery-title {
       text-align: center;
@@ -26,86 +26,170 @@
       }
     }
     
-    // Loading state
-    p {
+    .loading-container {
       text-align: center;
-      font-size: 1.2rem;
-      color: white;
-      padding: 2rem;
+      padding: 4rem 2rem;
+      
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem auto;
+      }
+      
+      p {
+        color: white;
+        font-size: 1.2rem;
+      }
+    }
+    
+    .no-wallet, .empty-gallery {
+      text-align: center;
+      padding: 4rem 2rem;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      
+      p {
+        color: white;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        
+        &:last-child {
+          margin-bottom: 0;
+          opacity: 0.8;
+        }
+      }
     }
     
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 2rem;
       margin-top: 2rem;
       
       @media (max-width: 768px) {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
       }
+    }
+    
+    .gallery-item {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
       
-      @media (max-width: 480px) {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
       }
       
-      .gallery-item {
-        background: white;
-        border-radius: 16px;
+      .nft-image {
+        position: relative;
+        height: 250px;
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        cursor: pointer;
-        
-        &:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
         
         img {
           width: 100%;
-          height: 250px;
+          height: 100%;
           object-fit: cover;
           transition: transform 0.3s ease;
+        }
+        
+        &:hover img {
+          transform: scale(1.05);
+        }
+        
+        .listed-badge {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: linear-gradient(45deg, #ff6b6b, #ffa500);
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 20px;
+          font-size: 0.8rem;
+          font-weight: bold;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+      }
+      
+      .nft-info {
+        padding: 1.5rem;
+        
+        h3 {
+          font-size: 1.3rem;
+          font-weight: 700;
+          color: #333;
+          margin-bottom: 0.5rem;
+          line-height: 1.2;
+        }
+        
+        .token-id {
+          font-size: 0.9rem;
+          color: #666;
+          margin-bottom: 0.75rem;
+          font-family: 'Courier New', monospace;
+          background: #f8f9fa;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          display: inline-block;
+        }
+        
+        .description {
+          font-size: 0.95rem;
+          color: #555;
+          line-height: 1.4;
+          margin-bottom: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      }
+      
+      .nft-actions {
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        
+        button {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: none;
+          border-radius: 8px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-size: 1rem;
           
-          &:hover {
-            transform: scale(1.05);
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
           }
         }
         
-        .image-info {
-          padding: 1.5rem;
+        .btn-sell {
+          background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+          color: white;
           
-          h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 0.5rem;
-            line-height: 1.4;
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
           }
+        }
+        
+        .btn-cancel-listing {
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+          color: white;
           
-          p {
-            font-size: 0.95rem;
-            color: #718096;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background: none;
-            border: none;
-            border-radius: 0;
-            backdrop-filter: none;
-            text-align: left;
-            
-            // Truncate long descriptions
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+          &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
           }
         }
       }
@@ -113,193 +197,65 @@
   }
 }
 
-// Loading animation
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.gallery-wrapper p {
-  animation: pulse 2s ease-in-out infinite;
-}
-
-// Empty state styling
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  
-  .empty-icon {
-    font-size: 4rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 1rem;
-  }
-  
-  .empty-title {
-    font-size: 1.5rem;
-    color: white;
-    margin-bottom: 0.5rem;
-  }
-  
-  .empty-description {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 1rem;
-  }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 // Responsive adjustments
 @media (max-width: 1024px) {
   .gallery-wrapper .gallery-container {
+    max-width: 100%;
     padding: 1.5rem;
-    padding-top: 100px;
+    padding-top: 140px;
   }
 }
 
 @media (max-width: 768px) {
   .gallery-wrapper .gallery-container {
     padding: 1rem;
-    padding-top: 90px;
+    padding-top: 140px;
     
-    .gallery-grid .gallery-item {
-      img {
-        height: 200px;
-      }
+    .gallery-title {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .gallery-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .gallery-item .nft-info {
+      padding: 1rem;
       
-      .image-info {
-        padding: 1rem;
-        
-        h3 {
-          font-size: 1.1rem;
-        }
-        
-        p {
-          font-size: 0.9rem;
-        }
+      h3 {
+        font-size: 1.1rem;
       }
     }
   }
 }
 
-// Dark mode support (optional)
+// Dark mode support
 @media (prefers-color-scheme: dark) {
   .gallery-wrapper {
-    background: linear-gradient(135deg, #849ecb 0%, #4a5568 100%);
-    
-    .gallery-container {
-      .gallery-grid .gallery-item {
-        background: #2d3748;
+    .gallery-item {
+      background: rgba(45, 45, 45, 0.95);
+      
+      .nft-info {
+        h3 {
+          color: #f5f5f5;
+        }
         
-        .image-info {
-          h3 {
-            color: #e2e8f0;
-          }
-          
-          p {
-            color: #a0aec0;
-          }
+        .token-id {
+          background: rgba(255, 255, 255, 0.1);
+          color: #ccc;
+        }
+        
+        .description {
+          color: #ccc;
         }
       }
     }
-  }
-}
-
-// Hover effects for better UX
-.gallery-item {
-  position: relative;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(
-      45deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.1) 50%,
-      transparent 70%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-    z-index: 1;
-  }
-  
-  &:hover::before {
-    opacity: 1;
-  }
-}
-
-// Loading skeleton (advanced)
-.gallery-skeleton {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 2rem;
-  
-  .skeleton-item {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    overflow: hidden;
-    
-    .skeleton-image {
-      width: 100%;
-      height: 250px;
-      background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0.1) 25%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0.1) 75%
-      );
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
-    }
-    
-    .skeleton-info {
-      padding: 1.5rem;
-      
-      .skeleton-title {
-        height: 1.5rem;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.1) 25%,
-          rgba(255, 255, 255, 0.2) 50%,
-          rgba(255, 255, 255, 0.1) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
-        margin-bottom: 0.5rem;
-        border-radius: 4px;
-      }
-      
-      .skeleton-description {
-        height: 3rem;
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.1) 25%,
-          rgba(255, 255, 255, 0.2) 50%,
-          rgba(255, 255, 255, 0.1) 75%
-        );
-        background-size: 200% 100%;
-        animation: shimmer 2s infinite;
-        border-radius: 4px;
-      }
-    }
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
   }
 }
