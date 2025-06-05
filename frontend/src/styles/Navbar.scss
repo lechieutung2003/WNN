@@ -14,6 +14,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .torn-paper img {
@@ -75,6 +77,13 @@
       }
     }
   }
+}
+
+.wallet-section {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+  z-index: 10;
 }
 
 @media (max-width: 768px) {

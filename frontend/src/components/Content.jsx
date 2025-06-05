@@ -1,58 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Content.scss';
-import artifactsData from '../assets/data/Arts_List.json'; // <-- import từ file
+import artifactsData from '../assets/data/Arts_List.json';
 import Navbar from './Navbar';
 import Loading from './Loading';
 import photo from '../assets/photo.png';
 import creature from '../assets/creature.png';
 import Button from './Button';
+import Web3Service from '../../services/Web3Service'; // Thêm import Web3Service
+import { useWeb3 } from '../contexts/Web3Context';
 
 const Content = () => {
+  const { account, connectWallet, isConnected } = useWeb3(); // Thêm Web3 context
   const [visibleIndex, setVisibleIndex] = useState(null);
   const [imageDataList, setImageDataList] = useState({});
   const [loadingIndex, setLoadingIndex] = useState(null);
-  const [galleryStatus, setGalleryStatus] = useState({});
+  const [nftStatus, setNftStatus] = useState({}); // Thay galleryStatus bằng nftStatus
+  const [mintingIndex, setMintingIndex] = useState(null); // Track đang mint NFT nào
 
   // Định nghĩa server URL một lần để sử dụng nhất quán
   const API_BASE_URL = 'http://localhost:5000';
 
-  // Thêm useEffect ngay sau khai báo API_BASE_URL
+  // Fetch NFT status từ localStorage hoặc từ blockchain
   useEffect(() => {
-    const fetchGalleryStatus = async () => {
+    const savedNftStatus = localStorage.getItem('nftMintStatus');
+    if (savedNftStatus) {
       try {
-        console.log('Fetching gallery status...');
-        const response = await fetch(`${API_BASE_URL}/api/images`);
-        
-        if (response.ok) {
-          const gallery = await response.json();
-          console.log('Gallery data received:', gallery.length, 'items');
-          
-          // Khởi tạo galleryStatus dựa trên dữ liệu từ server
-          const statusMap = {};
-          gallery.forEach(item => {
-            const index = artifactsData.findIndex(art => art.title === item.title);
-            if (index !== -1) {
-              statusMap[index] = true;
-              console.log(`Item "${item.title}" marked as added, index: ${index}`);
-            }
-          });
-          
-          setGalleryStatus(statusMap);
-        } else {
-          console.error('Failed to fetch gallery status:', response.status);
-        }
+        setNftStatus(JSON.parse(savedNftStatus));
       } catch (error) {
-        console.error('Error fetching gallery status:', error);
+        console.error('Error parsing saved NFT status:', error);
       }
-    };
-    
-    fetchGalleryStatus();
+    }
   }, []);
 
-  // Debug trạng thái gallery
+  // Save NFT status to localStorage whenever it changes
   useEffect(() => {
-    console.log('Current galleryStatus:', galleryStatus);
-  }, [galleryStatus]);
+    localStorage.setItem('nftMintStatus', JSON.stringify(nftStatus));
+  }, [nftStatus]);
 
   useEffect(() => {
     const sections = document.querySelectorAll('.hero-section');
@@ -121,10 +104,8 @@ const Content = () => {
     }
   };
 
-  // Đổi tên từ sendBase64ToNode thành saveImageToServer để chính xác hơn
   const saveImageToServer = async (base64Image, filename, title, index) => {
     try {
-      // Sử dụng API_BASE_URL để đảm bảo nhất quán
       const res = await fetch(`${API_BASE_URL}/save-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,42 +118,114 @@ const Content = () => {
       }
 
       const data = await res.json();
-      // Tạo URL đầy đủ từ API_BASE_URL và đường dẫn tương đối trả về từ server
       const imageUrl = `${API_BASE_URL}${data.imageUrl.startsWith('/') ? data.imageUrl : '/' + data.imageUrl}`;
     
       console.log('Image saved successfully:', imageUrl);
-
-      // Update state with the image URL
       setImageDataList(prev => ({ ...prev, [index]: imageUrl }));
     } catch (error) {
       console.error('Error saving image:', error);
     }
   };
 
-  const handleMarkAsAdded = async (index) => {
-    const title = artifactsData[index].title;
-    console.log('Marking as added:', title);
+  // Thay đổi chức năng: từ "Add to Gallery" thành "Mint NFT"
+  const handleMintNFT = async (index) => {
+    // Kiểm tra đã mint chưa
+    if (nftStatus[index]?.isMinted) {
+      alert('NFT này đã được mint rồi!');
+      return;
+    }
+
+    // Kiểm tra kết nối ví
+    if (!isConnected) {
+      try {
+        await connectWallet();
+      } catch (error) {
+        alert('Vui lòng kết nối ví MetaMask để mint NFT!');
+        return;
+      }
+    }
+
+    if (!account) {
+      alert('Không tìm thấy địa chỉ ví!');
+      return;
+    }
+
+    const artifact = artifactsData[index];
+    setMintingIndex(index); // Bắt đầu trạng thái minting
+
     try {
-      // Sử dụng API_BASE_URL để đảm bảo nhất quán
-      const res = await fetch(`${API_BASE_URL}/update-status`, {
+      console.log(`Starting mint NFT process for: ${artifact.title}`);
+
+      // 1. Tạo metadata trên IPFS thông qua backend
+      const metadataResponse = await fetch(`${API_BASE_URL}/mint-nft`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ 
+          title: artifact.title,
+          address: account
+        })
       });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Server error: ${errorText}`);
+      if (!metadataResponse.ok) {
+        const errorData = await metadataResponse.json();
+        throw new Error(errorData.message || 'Lỗi khi tạo metadata NFT');
       }
 
-      const data = await res.json();
-      console.log(data.message);
+      const metadataData = await metadataResponse.json();
       
-      // Cập nhật trạng thái hiển thị "Đã thêm vào gallery"
-      setGalleryStatus(prev => ({...prev, [index]: true}));
+      if (!metadataData.success) {
+        throw new Error(metadataData.message || 'Lỗi khi tạo metadata NFT');
+      }
+
+      console.log('Metadata created successfully:', metadataData);
+
+      // 2. Mint NFT trên blockchain
+      const mintResult = await Web3Service.mintNFT(
+        metadataData.data.gateway_url, // tokenURI
+        artifact.title
+      );
+
+      if (mintResult.success) {
+        // Cập nhật trạng thái NFT đã mint
+        setNftStatus(prev => ({
+          ...prev,
+          [index]: {
+            isMinted: true,
+            tokenId: mintResult.tokenId,
+            mintedAt: new Date().toISOString(),
+            metadataUrl: metadataData.data.gateway_url,
+            transactionHash: mintResult.transactionHash
+          }
+        }));
+
+        alert(`Mint NFT thành công!\nToken ID: ${mintResult.tokenId}\nTransaction: ${mintResult.transactionHash}`);
+        console.log('NFT minted successfully:', mintResult);
+      } else {
+        throw new Error(mintResult.error || 'Lỗi khi mint NFT trên blockchain');
+      }
+
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error minting NFT:', error);
+      alert('Lỗi khi mint NFT: ' + error.message);
+    } finally {
+      setMintingIndex(null); // Kết thúc trạng thái minting
     }
+  };
+
+  // Function để lấy text hiển thị trên button
+  const getButtonText = (index) => {
+    if (mintingIndex === index) {
+      return 'Đang mint NFT...';
+    }
+    if (nftStatus[index]?.isMinted) {
+      return `NFT đã mint (ID: ${nftStatus[index].tokenId})`;
+    }
+    return 'Mint NFT';
+  };
+
+  // Function để kiểm tra button có disabled không
+  const isButtonDisabled = (index) => {
+    return mintingIndex === index || nftStatus[index]?.isMinted;
   };
 
   return (
@@ -208,13 +261,28 @@ const Content = () => {
                       e.target.style.display = 'none';
                     }}
                   />
+                  {/* Giữ nguyên Button component nhưng thay đổi chức năng */}
                   <Button 
-                    onClick={() => handleMarkAsAdded(i)}
-                    isAdded={galleryStatus[i] === true}  // Chỉ true khi chắc chắn là true
-                    text="Thêm vào bộ sưu tập"
+                    onClick={() => handleMintNFT(i)} // Thay đổi chức năng
+                    isAdded={nftStatus[i]?.isMinted || false} // Thay đổi logic kiểm tra
+                    text={getButtonText(i)} // Thay đổi text
+                    disabled={isButtonDisabled(i)} // Thêm logic disabled
                   />
-                  {galleryStatus[i] === true && (
-                    <div className="added-status">Đã thêm vào bộ sưu tập</div>
+                  
+                  {/* Hiển thị status NFT thay vì gallery status */}
+                  {nftStatus[i]?.isMinted && (
+                    <div className="added-status nft-success-status">
+                      ✓ NFT đã mint thành công!<br/>
+                      <small>Token ID: {nftStatus[i].tokenId}</small>
+                    </div>
+                  )}
+                  
+                  {/* Hiển thị thông báo khi đang mint */}
+                  {mintingIndex === i && (
+                    <div className="minting-status">
+                      <div className="loading-spinner"></div>
+                      Đang mint NFT, vui lòng chờ...
+                    </div>
                   )}
                 </div>
               ) : null}

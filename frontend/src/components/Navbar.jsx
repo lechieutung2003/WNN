@@ -1,6 +1,7 @@
 import React from 'react';
 import '../styles/Navbar.scss';
 import nav from '../assets/nav.png';
+import WalletConnector from './WalletConnector';
 
 const Navbar = () => {
   // Lấy đường dẫn hiện tại
@@ -39,6 +40,9 @@ const Navbar = () => {
               </a>
             </li>
           </ul>
+        </div>
+        <div className="wallet-section">
+          <WalletConnector />
         </div>
       </div>
     </nav>

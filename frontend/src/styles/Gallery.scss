@@ -1,60 +1,305 @@
-@keyframes animate {
+.gallery-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  
+  .gallery-header {
+    height: 120px;
+  }
+
+  .gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    padding-top: 120px; // Để tránh navbar
+    
+    .gallery-title {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 3rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      
+      @media (max-width: 768px) {
+        font-size: 2rem;
+        margin-bottom: 2rem;
+      }
+    }
+    
+    // Loading state
+    p {
+      text-align: center;
+      font-size: 1.2rem;
+      color: white;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+      
+      @media (max-width: 768px) {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+      }
+      
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .gallery-item {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        
+        &:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        img {
+          width: 100%;
+          height: 250px;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+          
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+        
+        .image-info {
+          padding: 1.5rem;
+          
+          h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+          }
+          
+          p {
+            font-size: 0.95rem;
+            color: #718096;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: none;
+            border: none;
+            border-radius: 0;
+            backdrop-filter: none;
+            text-align: left;
+            
+            // Truncate long descriptions
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Loading animation
+@keyframes pulse {
   0% {
-    transform: perspective(1000px) rotateY(0deg);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
   }
   100% {
-    transform: perspective(1000px) rotateY(360deg);
+    opacity: 1;
   }
 }
 
-.wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
+.gallery-wrapper p {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+// Empty state styling
+.empty-state {
   text-align: center;
-  // display: flex;
-  justify-content: center;
-  overflow: hidden;
+  padding: 4rem 2rem;
+  
+  .empty-icon {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1rem;
+  }
+  
+  .empty-title {
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-description {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+  }
 }
 
-/* Áp dụng animation xoay cho container inner */
-.inner {
-  --w: 100px;
-  --h: 150px;
-  --translateZ: calc((var(--w) + var(--h)) + 0px);
-  --perspective: 1000px;
-  position: absolute;
-  width: var(--w);
-  height: var(--h);
-  top: 25%;
-  left: calc(50% - (var(--w) / 2) - 2.5px);
-  z-index: 2;
-  transform-style: preserve-3d;
-  animation: animate 20s linear infinite;
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .gallery-wrapper .gallery-container {
+    padding: 1.5rem;
+    padding-top: 100px;
+  }
 }
 
-/* Kiểu dáng cho từng card với hiệu ứng đặt theo chiều sâu */
-.card {
-  position: absolute;
-  border: 2px solid rgba(var(--color-card));
-  border-radius: 12px;
-  overflow: hidden;
-  inset: 0;
-  transform: rotateY(calc((360deg / var(--quantity)) * var(--index))) translateZ(var(--translateZ));
+@media (max-width: 768px) {
+  .gallery-wrapper .gallery-container {
+    padding: 1rem;
+    padding-top: 90px;
+    
+    .gallery-grid .gallery-item {
+      img {
+        height: 200px;
+      }
+      
+      .image-info {
+        padding: 1rem;
+        
+        h3 {
+          font-size: 1.1rem;
+        }
+        
+        p {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
 }
 
-/* Định dạng hình ảnh bên trong card */
-.img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: radial-gradient(
-    circle,
-    rgba(var(--color-card), 0.2) 0%,
-    rgba(var(--color-card), 0.6) 80%,
-    rgba(var(--color-card), 0.9) 100%
-  );
+// Dark mode support (optional)
+@media (prefers-color-scheme: dark) {
+  .gallery-wrapper {
+    background: linear-gradient(135deg, #849ecb 0%, #4a5568 100%);
+    
+    .gallery-container {
+      .gallery-grid .gallery-item {
+        background: #2d3748;
+        
+        .image-info {
+          h3 {
+            color: #e2e8f0;
+          }
+          
+          p {
+            color: #a0aec0;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Hover effects for better UX
+.gallery-item {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      45deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// Loading skeleton (advanced)
+.gallery-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+  
+  .skeleton-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    
+    .skeleton-image {
+      width: 100%;
+      height: 250px;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.1) 25%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+    
+    .skeleton-info {
+      padding: 1.5rem;
+      
+      .skeleton-title {
+        height: 1.5rem;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.1) 25%,
+          rgba(255, 255, 255, 0.2) 50%,
+          rgba(255, 255, 255, 0.1) 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+      }
+      
+      .skeleton-description {
+        height: 3rem;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.1) 25%,
+          rgba(255, 255, 255, 0.2) 50%,
+          rgba(255, 255, 255, 0.1) 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }

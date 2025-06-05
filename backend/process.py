@@ -1,14 +1,23 @@
 from flask import Flask, request, jsonify, send_from_directory
 import requests
 import sys
-import os
 import json
-import base64
 from flask_cors import CORS
+import traceback
+import base64
+import os
 
 # Add the parent directory to sys.path to import app modules
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from semantic.PromptBuilder import PromptBuilder
+
+# from blockchain.nft_storage import NFTStorage
+# APInft_KEY = "60bee204.c05e614a42214e0e9ef1a8cbe82bf05a"
+# nft_storage = NFTStorage(APInft_KEY)
+
+from blockchain.pinata_storage import PinataStorage
+PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI2YmJkZTAxNy0zMTMyLTRiODAtOTI0MS1lZjkzNTI4YjA3ZDUiLCJlbWFpbCI6ImxlY2hpZXV0dW5nMjAwM0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiZTUyNDMxZjY1MjkyYWQ1YzIyM2YiLCJzY29wZWRLZXlTZWNyZXQiOiJlODZmNTZhZTQ1ZDhlMGU3MDYxZTZiMjk4Y2NmYmU5NDliMzkwYzJmNDhkMTUwZjBjZWQzYTZiY2I2NjNhMTJmIiwiZXhwIjoxNzgwNTk3OTg4fQ.Zcpqt-k0e-irkbJvAxON4fBM72QYOxtCF3R4DMiHXa4"
+storage_client = PinataStorage(jwt=PINATA_JWT)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
@@ -192,6 +201,47 @@ def update_status():
         print(f"Error updating status: {str(e)}")
         return jsonify({"message": f"Error updating status: {str(e)}"}), 500
 
+@app.route('/cancel-addition', methods=['POST'])
+def cancel_addition():
+    try:
+        data = request.json
+        title = data.get('title')
+        
+        if not title:
+            return jsonify({"message": "Missing title"}), 400
+            
+        # Đọc gallery.json
+        try:
+            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
+                gallery = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return jsonify({"message": "Gallery not found or invalid format"}), 500
+            
+        # Tìm và xóa item khỏi gallery với status 'added'
+        updated_gallery = []
+        removed = False
+        
+        for item in gallery:
+            if item.get('title') == title and item.get('status') == 'added':
+                # Loại bỏ status để đánh dấu là không còn trong gallery
+                if 'status' in item:
+                    del item['status']
+                removed = True
+            updated_gallery.append(item)
+        
+        # Nếu không có thay đổi, trả về lỗi
+        if not removed:
+            return jsonify({"message": "Title not found in gallery or not marked as added"}), 404
+            
+        # Lưu gallery.json
+        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
+            json.dump(updated_gallery, f, indent=2)
+            
+        return jsonify({"message": "Item removed from gallery successfully"})
+        
+    except Exception as e:
+        return jsonify({"message": f"Error: {str(e)}"}), 500
+    
 @app.route('/api/images', methods=['GET'])
 def get_gallery_images():
     try:
@@ -216,6 +266,132 @@ def serve_image(filename):
 def check_server():
     """Endpoint đơn giản để kiểm tra server có hoạt động không"""
     return jsonify({"status": "ok", "message": "Unified server is running"})
+
+@app.route('/mint-nft', methods=['POST'])
+def mint_nft():
+    """Mint NFT từ hình ảnh trong gallery"""
+    try:
+        data = request.json
+        title = data.get('title')
+        address = data.get('address')  # Nhận địa chỉ ví từ request
+        
+        if not title:
+            return jsonify({"success": False, "message": "Thiếu tiêu đề"}), 400
+            
+        # Tải gallery để tìm tác phẩm
+        try:
+            with open(GALLERY_PATH, 'r', encoding='utf-8') as f:
+                gallery = json.load(f)
+        except Exception as e:
+            return jsonify({"success": False, "error": f"Không thể tải gallery: {str(e)}"}), 500
+            
+        # Tìm tác phẩm trong gallery
+        artwork = next((item for item in gallery if item.get('title') == title), None)
+            
+        if not artwork:
+            return jsonify({"success": False, "message": "Không tìm thấy tác phẩm"}), 404
+        
+        # Kiểm tra xem đã mint trước đó chưa
+        if artwork.get('nft'):
+            return jsonify({
+                "success": True, 
+                "message": "NFT đã được tạo trước đó", 
+                "data": artwork['nft']
+            }), 200
+        
+        # Lấy đường dẫn đầy đủ đến hình ảnh
+        image_url = artwork.get('imageUrl', '')
+        if not image_url:
+            return jsonify({"success": False, "message": "Không tìm thấy URL hình ảnh"}), 400
+        
+        print(image_url)
+        
+        image_path = r"F:\WNN\WNN\DApp\frontend\public" + image_url
+        
+        print(f"Image path: {image_path}")
+        
+        if not os.path.exists(image_path):
+            return jsonify({"success": False, "message": f"Không tìm thấy file hình ảnh tại {image_path}"}), 404
+                
+        # Tải lên IPFS qua Pinata
+        metadata = {
+            "title": artwork.get('title', 'Untitled'),
+            "creator": artwork.get('creator', 'Unknown'),
+            "dateCreated": artwork.get('dateCreated', ''),
+            "materials": artwork.get('materials', ''),
+            "description": artwork.get('description', '')
+        }
+        
+        result = storage_client.upload_artwork(image_path, metadata)
+        
+        if not result.get('success'):
+            error_msg = result.get('error', 'Unknown error')
+            print(f"Error uploading to IPFS: {error_msg}")
+            return jsonify({"success": False, "error": error_msg}), 500
+            
+        # Cập nhật gallery với metadata NFT và địa chỉ chủ sở hữu
+        for i, item in enumerate(gallery):
+            if item.get('title') == artwork.get('title'):
+                gallery[i]['nft'] = {
+                    'metadata_url': result.get('metadata_url'),
+                    'gateway_url': result.get('gateway_url'),
+                    'image_cid': result.get('image_cid'),
+                    'metadata_cid': result.get('metadata_cid'),
+                    'owner_address': address.lower() if address else None
+                }
+                break
+        
+        # Lưu gallery đã cập nhật
+        with open(GALLERY_PATH, 'w', encoding='utf-8') as f:
+            json.dump(gallery, f, indent=2)
+            
+        return jsonify({
+            "success": True,
+            "message": "Metadata NFT đã được tạo thành công",
+            "data": result,
+            "address": address  # Trả về địa chỉ để frontend xử lý
+        })
+        
+    except Exception as e:
+        print(f"Error in /mint-nft endpoint: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/test-pinata', methods=['GET'])
+def test_pinata():
+    """Kiểm tra kết nối với Pinata"""
+    try:
+        # Tạo file test
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as temp:
+            temp.write(b"This is a test file for Pinata")
+            test_file = temp.name
+        
+        print(f"Created test file: {test_file}")
+        
+        # Test upload
+        result = storage_client.upload_artwork(test_file, {
+            "title": "Test File",
+            "creator": "WNN Test System",
+            "description": "Test file to verify Pinata integration"
+        })
+        
+        # Xóa file test
+        import os
+        os.unlink(test_file)
+        
+        return jsonify({
+            "success": True,
+            "jwt_preview": f"{PINATA_JWT[:10]}...{PINATA_JWT[-10:]}" if PINATA_JWT else "Using API key/secret",
+            "result": result
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }), 500
 
 if __name__ == '__main__':
     print("Starting unified Flask server on port 5000...")
