@@ -41,8 +41,8 @@ const Navbar = () => {
             </li>
             <li>
               <a
-                href="#about"
-                className={currentPath === '#about' ? 'active' : ''}
+                href="/about"
+                className={currentPath === '/about' ? 'active' : ''}
               >
                 ABOUT
               </a>

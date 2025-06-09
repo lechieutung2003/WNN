@@ -1,82 +1,85 @@
 .gallery-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  
-  .gallery-header {
-    height: 120px;
-  }
+  background: linear-gradient(135deg, #EFE4D2, #F8F3D9);
 
   .gallery-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
     padding-top: 120px;
-    
-    .gallery-title {
-      text-align: center;
-      font-size: 3rem;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 3rem;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-      
-      @media (max-width: 768px) {
-        font-size: 2rem;
-        margin-bottom: 2rem;
-      }
+
+    @media (max-width: 768px) {
+      font-size: 2rem;
+      margin-bottom: 2rem;
     }
-    
+
     .loading-container {
       text-align: center;
       padding: 4rem 2rem;
-      
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+
       .loading-spinner {
         width: 50px;
         height: 50px;
-        border: 4px solid rgba(255, 255, 255, 0.3);
-        border-top: 4px solid white;
+        border: 4px solid rgba(93, 92, 92, 0.3);
+        border-top: 4px solid #333;
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 0 auto 1rem auto;
       }
-      
+
       p {
-        color: white;
+        color: #333;
         font-size: 1.2rem;
       }
     }
-    
-    .no-wallet, .empty-gallery {
+
+    .no-wallet,
+    .empty-gallery {
       text-align: center;
       padding: 4rem 2rem;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       backdrop-filter: blur(10px);
-      
+
       p {
-        color: white;
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        
+        color: #333;
+        font-size: 1.5rem;
+        margin-bottom: 1.3rem;
+
         &:last-child {
           margin-bottom: 0;
           opacity: 0.8;
         }
       }
     }
-    
+
+    .empty-gallery {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+    }
+
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 2rem;
       margin-top: 2rem;
-      
+
       @media (max-width: 768px) {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.5rem;
       }
     }
-    
+
     .gallery-item {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 16px;
@@ -84,28 +87,59 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       backdrop-filter: blur(10px);
-      
+      margin-top: 25px;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.6s ease-out forwards;
+
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .gallery-item:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+
+      .gallery-item:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .gallery-item:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      .gallery-item:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+
+      .marketplace-item:nth-child(n+5) {
+        animation-delay: 0.5s;
+      }
+
       &:hover {
         transform: translateY(-5px);
         box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
       }
-      
+
       .nft-image {
         position: relative;
         height: 250px;
         overflow: hidden;
-        
+
         img {
           width: 100%;
           height: 100%;
           object-fit: cover;
           transition: transform 0.3s ease;
         }
-        
+
         &:hover img {
           transform: scale(1.05);
         }
-        
+
         .listed-badge {
           position: absolute;
           top: 10px;
@@ -119,18 +153,20 @@
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
       }
-      
+
       .nft-info {
+        height: 200px;
         padding: 1.5rem;
-        
+
         h3 {
+          height: 50px;
           font-size: 1.3rem;
           font-weight: 700;
           color: #333;
           margin-bottom: 0.5rem;
           line-height: 1.2;
         }
-        
+
         .token-id {
           font-size: 0.9rem;
           color: #666;
@@ -141,7 +177,7 @@
           border-radius: 4px;
           display: inline-block;
         }
-        
+
         .description {
           font-size: 0.95rem;
           color: #555;
@@ -153,10 +189,10 @@
           overflow: hidden;
         }
       }
-      
+
       .nft-actions {
         padding: 0 1.5rem 1.5rem 1.5rem;
-        
+
         button {
           width: 100%;
           padding: 0.75rem 1rem;
@@ -166,27 +202,27 @@
           cursor: pointer;
           transition: all 0.3s ease;
           font-size: 1rem;
-          
+
           &:disabled {
             opacity: 0.6;
             cursor: not-allowed;
           }
         }
-        
+
         .btn-sell {
           background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
           color: white;
-          
+
           &:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
           }
         }
-        
+
         .btn-cancel-listing {
           background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
           color: white;
-          
+
           &:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
@@ -198,8 +234,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 // Responsive adjustments
@@ -215,20 +256,20 @@
   .gallery-wrapper .gallery-container {
     padding: 1rem;
     padding-top: 140px;
-    
+
     .gallery-title {
       font-size: 2rem;
       margin-bottom: 2rem;
     }
-    
+
     .gallery-grid {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
-    
+
     .gallery-item .nft-info {
       padding: 1rem;
-      
+
       h3 {
         font-size: 1.1rem;
       }
@@ -241,17 +282,17 @@
   .gallery-wrapper {
     .gallery-item {
       background: rgba(45, 45, 45, 0.95);
-      
+
       .nft-info {
         h3 {
           color: #f5f5f5;
         }
-        
+
         .token-id {
           background: rgba(255, 255, 255, 0.1);
           color: #ccc;
         }
-        
+
         .description {
           color: #ccc;
         }

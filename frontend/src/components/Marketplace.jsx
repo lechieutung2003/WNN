@@ -49,7 +49,7 @@ const Marketplace = () => {
 
     try {
       const result = await Web3Service.buyNFT(listing.tokenId, listing.price);
-      
+
       if (result.success) {
         alert(`Mua NFT thành công!\nTransaction: ${result.transactionHash}`);
         // Refresh listings
@@ -84,8 +84,7 @@ const Marketplace = () => {
       <Navbar />
       <div className="marketplace-header"></div>
       <div className="marketplace-container">
-        <h1 className="marketplace-title">NFT Marketplace</h1>
-        
+
         {loading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>
@@ -106,7 +105,7 @@ const Marketplace = () => {
               </div>
               <div className="stat-item">
                 <span className="stat-number">
-                  {listings.reduce((min, listing) => 
+                  {listings.reduce((min, listing) =>
                     Math.min(min, parseFloat(listing.price)), Infinity
                   ).toFixed(3)}
                 </span>
@@ -114,7 +113,7 @@ const Marketplace = () => {
               </div>
               <div className="stat-item">
                 <span className="stat-number">
-                  {listings.reduce((max, listing) => 
+                  {listings.reduce((max, listing) =>
                     Math.max(max, parseFloat(listing.price)), 0
                   ).toFixed(3)}
                 </span>
@@ -128,7 +127,7 @@ const Marketplace = () => {
                   <div className="nft-image">
                     <img src={listing.imageUrl} alt={listing.title} />
                   </div>
-                  
+
                   <div className="nft-info">
                     <h3>{listing.title}</h3>
                     <p className="token-id">Token ID: {listing.tokenId}</p>
@@ -136,32 +135,32 @@ const Marketplace = () => {
                       <p className="description">{listing.metadata.description}</p>
                     )}
                   </div>
-                  
+
                   <div className="listing-details">
                     <div className="price-section">
                       <span className="price-label">Giá bán</span>
                       <span className="price">{listing.price} ETH</span>
                     </div>
-                    
+
                     <div className="seller-info">
                       <span className="seller-label">Người bán:</span>
                       <span className="seller-address">
                         {formatAddress(listing.seller)}
                       </span>
                     </div>
-                    
+
                     <div className="listing-time">
                       <span>Đăng bán: {formatDate(listing.listedAt)}</span>
                     </div>
                   </div>
-                  
+
                   <div className="marketplace-actions">
                     {listing.seller.toLowerCase() === account?.toLowerCase() ? (
                       <button className="btn-own-nft" disabled>
                         NFT của bạn
                       </button>
                     ) : (
-                      <button 
+                      <button
                         className="btn-buy"
                         onClick={() => handleBuy(listing)}
                         disabled={buyingTokenId === listing.tokenId}

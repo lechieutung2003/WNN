@@ -5,6 +5,7 @@ import Home from './components/Home.jsx';
 import Content from './components/Content.jsx';
 import Gallery from './components/Gallery.jsx';
 import Marketplace from './components/Marketplace';
+import About from './components/About.jsx';
 import NFTs from './components/NFTs';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/content" element={<Content />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/marketplace" element={<Marketplace />} /> {/* Thêm route */}
+          <Route path="/about" element={<About />} />
         </Routes>
       </BrowserRouter>
     </Web3Provider>

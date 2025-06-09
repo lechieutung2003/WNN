@@ -100,14 +100,14 @@ const Content = () => {
       // Lưu base64 image data trực tiếp vào state
       const base64Image = `data:image/jpeg;base64,${data.image}`;
       setImageDataList(prev => ({ ...prev, [index]: base64Image }));
-      
+
       // Hiển thị thông tin về source của ảnh
       if (data.source === 'fallback') {
         console.log('⚠️ Using fallback image:', data.message);
       } else {
         console.log('✅ Generated successfully from Stable Diffusion');
       }
-      
+
     } catch (err) {
       console.error('❌ Error in image generation process:', err);
       alert('Lỗi khi tạo ảnh: ' + err.message);
@@ -155,7 +155,7 @@ const Content = () => {
       const metadataResponse = await fetch(`${API_BASE_URL}/mint-nft-direct`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           title: artifact.title,
           imageData: imageDataList[index], // Gửi base64 image data
           address: account,
@@ -169,7 +169,7 @@ const Content = () => {
       }
 
       const metadataData = await metadataResponse.json();
-      
+
       if (!metadataData.success) {
         throw new Error(metadataData.error || 'Lỗi khi upload IPFS và tạo metadata');
       }
@@ -210,19 +210,19 @@ const Content = () => {
     }
   };
 
-  const getButtonText = (index) => {
-    if (mintingIndex === index) {
-      return 'Đang mint NFT...';
-    }
-    if (nftStatus[index]?.isMinted) {
-      return `✅ NFT #${nftStatus[index].tokenId}`;
-    }
-    return '🚀 Mint NFT';
-  };
+  // const getButtonText = (index) => {
+  //   if (mintingIndex === index) {
+  //     return 'Đang mint NFT...';
+  //   }
+  //   if (nftStatus[index]?.isMinted) {
+  //     return `✅ NFT #${nftStatus[index].tokenId}`;
+  //   }
+  //   return '🚀 Mint NFT';
+  // };
 
-  const isButtonDisabled = (index) => {
-    return mintingIndex === index || nftStatus[index]?.isMinted || !imageDataList[index];
-  };
+  // const isButtonDisabled = (index) => {
+  //   return mintingIndex === index || nftStatus[index]?.isMinted || !imageDataList[index];
+  // };
 
   const getImageStatus = (index) => {
     if (nftStatus[index]?.isMinted) {
@@ -252,11 +252,11 @@ const Content = () => {
               <div className="description-section">
                 <p className="description-text">{artifact.description}</p>
                 {/* Hiển thị metadata */}
-                <div className="metadata-info">
-                  <small>📅 {artifact.dateCreated}</small><br/>
-                  <small>👨‍🎨 {artifact.creator}</small><br/>
+                {/* <div className="metadata-info">
+                  <small>📅 {artifact.dateCreated}</small><br />
+                  <small>👨‍🎨 {artifact.creator}</small><br />
                   <small>🎨 {artifact.materials}</small>
-                </div>
+                </div> */}
               </div>
             )}
           </div>
@@ -266,28 +266,31 @@ const Content = () => {
               {loadingIndex === i ? (
                 <div className="loading-container">
                   <Loading />
-                  <p className="loading-text">🎨 Đang tạo artwork...</p>
+                  {/* <p className="loading-text">🎨 Đang tạo artwork...</p> */}
                 </div>
-              ) : imageDataList[i] ? (  
+              ) : imageDataList[i] ? (
                 <div className="image-container">
-                  <img 
-                    src={imageDataList[i]} 
-                    className="inner-photo" 
+                  <img
+                    src={imageDataList[i]}
+                    className="inner-photo"
                     onError={(e) => {
                       console.error("❌ Failed to load image");
                       e.target.style.display = 'none';
                     }}
                   />
-                  
+
                   {/* Action Button */}
                   <div className="action-section">
-                    <Button 
+                    <Button
                       onClick={() => handleMintNFT(i)}
                       isAdded={nftStatus[i]?.isMinted || false}
-                      text={getButtonText(i)}
-                      disabled={isButtonDisabled(i)}
+                      isLoading={mintingIndex === i}
+                      // text={getButtonText(i)}
+                      // disabled={isButtonDisabled(i)}
+                      text="ADD TO GALLERY"
+                      disabled={!imageDataList[i]}
                     />
-                    
+
                     {/* Connection status */}
                     {!isConnected && imageDataList[i] && !nftStatus[i]?.isMinted && (
                       <p className="wallet-hint">
@@ -295,11 +298,11 @@ const Content = () => {
                       </p>
                     )}
                   </div>
-                  
+
                   {/* Status displays */}
                   {nftStatus[i]?.isMinted && (
                     <div className="nft-success-status">
-                      <div className="success-header">
+                      {/* <div className="success-header">
                         🎉 NFT đã mint thành công!
                       </div>
                       <div className="success-details">
@@ -319,10 +322,10 @@ const Content = () => {
                           <span className="label">Status:</span>
                           <span className="value">🌐 Decentralized</span>
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   )}
-                  
+
                   {mintingIndex === i && (
                     <div className="minting-status">
                       <div className="minting-content">
@@ -337,8 +340,8 @@ const Content = () => {
                 </div>
               ) : (
                 <div className="placeholder-content">
-                  <div className="placeholder-icon">🎨</div>
-                  <p>Nhấn vào tiêu đề để tạo artwork</p>
+                  {/* <div className="placeholder-icon">🎨</div>
+                  <p>Nhấn vào tiêu đề để tạo artwork</p> */}
                 </div>
               )}
             </div>

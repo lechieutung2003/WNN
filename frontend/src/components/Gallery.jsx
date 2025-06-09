@@ -69,9 +69,7 @@ const Gallery = () => {
     <div className="gallery-wrapper">
       <Navbar />
       <div className="gallery-header"></div>
-      <div className="gallery-container">
-        <h1 className="gallery-title">My NFT Collection</h1>
-        
+      <div className="gallery-container">        
         {loading ? (
           <div className="loading-container">
             <div className="loading-spinner"></div>

@@ -31,7 +31,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", 
 GALLERY_PATH = os.path.join(DATA_DIR, "gallery.json")
 
 # URL của API Stable Diffusion đang chạy trên Colab
-STABLE_DIFFUSION_API = "https://870c-35-189-186-49.ngrok-free.app/execute"
+STABLE_DIFFUSION_API = "https://97f9-34-125-50-109.ngrok-free.app/execute"
 
 # Đảm bảo các thư mục tồn tại
 os.makedirs(GENERATED_DIR, exist_ok=True)
