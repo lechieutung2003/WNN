@@ -1,157 +1,237 @@
 .about-wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 0;
+  // padding: 80px 20px 40px;
+  position: relative;
+  overflow-x: hidden;
+  border-radius: 20px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
 }
 
 .about-containers {
+  padding: 80px 20px 40px;
   max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 12% auto;
   background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  // margin-top: 2rem;
-  margin-bottom: 2rem;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 60px 50px;
+//   box-shadow: 
+//     0 20px 60px rgba(0, 0, 0, 0.15),
+//     0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  animation: fadeInUp 0.8s ease-out;
+
+  @media (max-width: 768px) {
+    padding: 40px 30px;
+    margin: 20px;
+    border-radius: 16px;
+  }
 
   h1 {
-    font-size: 2.5rem;
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 2rem;
-    font-weight: 700;
+    font-size: 3.5rem;
+    font-weight: 800;
     background: linear-gradient(135deg, #667eea, #764ba2);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+
+    @media (max-width: 768px) {
+      font-size: 2.5rem;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 2px;
+    }
   }
 
   h2 {
-    font-size: 1.8rem;
-    color: #34495e;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    border-left: 4px solid #667eea;
-    padding-left: 1rem;
+    font-size: 2rem;
+    color: #333;
+    margin: 40px 30px 20px;
+    font-weight: 700;
+    position: relative;
+    padding-left: 20px;
+
+    @media (max-width: 768px) {
+      font-size: 1.6rem;
+    }
+
+    &::before {
+      content: '✨';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+      margin-left: -40px;
+    }
   }
 
   p {
     font-size: 1.1rem;
-    line-height: 1.7;
-    color: #555;
-    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    color: #ff0000;
+    margin-bottom: 25px;
     text-align: justify;
-  }
 
-  ul, ol {
-    margin: 1.5rem 0;
-    padding-left: 2rem;
-
-    li {
+    @media (max-width: 768px) {
       font-size: 1rem;
       line-height: 1.6;
-      color: #666;
-      margin-bottom: 0.8rem;
-      
+    }
+
+    strong {
+      color: #667eea;
+      font-weight: 600;
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+
+    li {
+      background: linear-gradient(90deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+      margin: 12px 0;
+      padding: 16px 20px;
+      color: #000000;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        transform: translateX(8px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+      }
+
       strong {
         color: #667eea;
         font-weight: 600;
+        display: inline-block;
+        margin-right: 8px;
+      }
+
+      &::before {
+        content: '▸';
+        position: absolute;
+left: -2px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 1.2em;
+        font-weight: bold;
       }
     }
   }
 
-  ul li {
-    list-style-type: none;
-    position: relative;
-    
-    &::before {
-      content: "✨";
-      position: absolute;
-      left: -1.5rem;
-      color: #667eea;
-    }
-  }
+  ol {
+    counter-reset: step-counter;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
 
-  ol li {
-    list-style-type: decimal;
-    color: #555;
-    
-    &::marker {
-      color: #667eea;
-      font-weight: bold;
-    }
-  }
+    li {
+      background: linear-gradient(90deg, rgba(118, 75, 162, 0.1), rgba(102, 126, 234, 0.1));
+      margin: 16px 0;
+      color: #000000;
+      padding: 20px 25px 20px 60px;
+      border-radius: 12px;
+      position: relative;
+      transition: all 0.3s ease;
+      counter-increment: step-counter;
 
-  .about-footer {
-    margin-top: 3rem;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    text-align: center;
-    border-radius: 10px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-  }
-}
+      &:hover {
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(118, 75, 162, 0.2);
+      }
 
-// Responsive design
-@media (max-width: 768px) {
-  .about-containers {
-    margin: 1rem;
-    padding: 1.5rem;
-    
-    h1 {
-      font-size: 2rem;
-    }
-    
-    h2 {
-      font-size: 1.5rem;
-    }
-    
-    p, ul li, ol li {
-      font-size: 1rem;
-    }
-    
-    .about-footer {
-      padding: 1.5rem;
-      font-size: 1.1rem;
+      &::before {
+        content: counter(step-counter);
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+
+      strong {
+        color: #764ba2;
+        font-weight: 600;
+      }
     }
   }
 }
 
-@media (max-width: 480px) {
-  .about-containers {
-    margin: 0.5rem;
-    padding: 1rem;
-    
-    h1 {
-      font-size: 1.8rem;
-    }
-    
-    h2 {
-      font-size: 1.3rem;
-      margin-top: 2rem;
-    }
-    
-    ul, ol {
-      padding-left: 1.5rem;
-    }
-    
-    .about-footer {
-      padding: 1rem;
-      font-size: 1rem;
-    }
+.about-footer {
+  text-align: center;
+  margin-top: 50px;
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 16px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    padding: 20px;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: shine 3s infinite;
+  }
+
+  strong {
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 }
 
-// Animation effects
-.about-containers {
-  animation: fadeInUp 0.8s ease-out;
-}
-
+// Animations
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -163,14 +243,48 @@
   }
 }
 
-// Hover effects
-.about-containers h2:hover {
-  color: #667eea;
-  transition: color 0.3s ease;
+@keyframes shine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
 }
 
-.about-footer:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
+// Responsive design
+@media (max-width: 480px) {
+  .about-wrapper {
+    padding: 60px 10px 20px;
+  }
+  
+  .about-containers {
+    padding: 30px 20px;
+    
+    h1 {
+      font-size: 2rem;
+    }
+    
+    h2 {
+      font-size: 1.4rem;
+    }
+    
+    ul li,
+    ol li {
+      padding: 12px 15px 12px 45px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .about-containers {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    h2 {
+      color: #e0e0e0;
+    }
+    
+    p {
+      color: #b0b0b0;
+    }
+  }
 }
